@@ -1,0 +1,16 @@
+/* Keep the warm palette while preserving readable body and status text. */
+:root{--muted:#62745d}
+.workspace-label,.eyebrow,.page-heading p,.panel-heading p,.metric>div,.metric>small,.section-heading p,.feature-card p,.priority-row small,.sidebar-card p,.sidebar-bottom>button,.profile small,.business-switch small,.deal-list-row small,.workspace-footer,.workspace-footer>.text-button,.chart-caption,.chart-caption>span,.deal-card>p,.deal-dates>span,.deal-card>.muted,.case-card>p,.comparison-card>span,.comparison-card p,.decision-intro p,.scenario-conclusion p,.source-note,.field>span,.muted,.form-footer>span,.auth-form>p,.auth-story>p,.demo-entry small,.action-row small,.evidence-row small,.review-summary>p,.timeline p,.connector-list article p{color:#64775d}
+.hero p,.hero-label,.hero-link,.art-caption,.speech-tag{color:#546d45}
+.hero p strong{color:#3b5931}
+.badge.green{color:#426337;background:#e6efdd}
+.badge.amber,.notice{color:#796029}
+.badge.neutral{color:#58694f;background:#e9eee2}
+.badge.outline{color:#586f49;border-color:#becfb1}
+th,td,td small,.mini-button,.text-button,.period-button,.segmented,.feature-link,.tool-strip>button{color:#586f4b}
+.round-icon.peach{color:#8b6a3c}.round-icon.mint{color:#55783f}.round-icon.lavender{color:#76638e}
+.panel-heading p,.metric>small,.priority-row small,.feature-card p,.deal-list-row small,.evidence-row small{font-size:11px}
+.priority-row strong,.feature-card h3,.deal-list-row strong{font-size:12px}
+.chart-caption,.forecast-note p,.workspace-footer{font-size:10px}
+.forecast-note strong{font-size:11px}.badge{font-size:10px}
+@media(max-width:640px){.metric>small{font-size:9px}.page-heading p,.panel-heading p,.feature-card p{font-size:11px}.badge{font-size:9px}.workspace-footer{font-size:9px}}

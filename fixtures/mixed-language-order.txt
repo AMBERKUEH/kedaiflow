@@ -1,0 +1,4 @@
+SYNTHETIC FIXTURE — NOT A REAL ORDER
+Boss, 50 crates tomato untuk Friday. RM160 per crate, separuh deposit. Baki bulan depan, boleh? 谢谢老板。
+
+Expected review: quantity 50, unit crate, proposed price RM160 each. Ask product details, the exact Friday, delivery/charges, and exact balance date. Do not silently interpret next month.

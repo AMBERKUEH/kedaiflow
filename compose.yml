@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: kedaiflow
+      POSTGRES_USER: kedaiflow
+      POSTGRES_PASSWORD: local-development-only
+    ports: ["127.0.0.1:5438:5432"]
+    volumes: ["database:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kedaiflow"]
+      interval: 5s
+      retries: 10
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://kedaiflow:local-development-only@postgres/kedaiflow
+      APP_ENV: development
+      DATA_MODE: fixture
+      ACTION_MODE: simulation
+      WEB_ORIGIN: http://localhost:3000
+    command: ["sh", "-c", "python -m scripts.migrate && python -m services.api.seed && uvicorn services.api.main:app --host 0.0.0.0 --port 8000"]
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+    volumes: ["evidence:/app/private_media"]
+  worker:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://kedaiflow:local-development-only@postgres/kedaiflow
+      APP_ENV: development
+      ACTION_MODE: simulation
+    command: ["python", "-m", "services.api.worker"]
+    depends_on: [api]
+    volumes: ["evidence:/app/private_media"]
+volumes:
+  database:
+  evidence:
