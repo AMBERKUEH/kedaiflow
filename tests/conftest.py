@@ -7,6 +7,9 @@ from services.api.models import Base
 
 @pytest.fixture
 def env(tmp_path, monkeypatch):
+    # Tests must never use real provider keys from the operator's private .env.
+    monkeypatch.setattr(main.settings, 'groq_key', '')
+    monkeypatch.setattr(main.settings, 'elevenlabs_key', '')
     engine = db.make_engine('sqlite:///' + str(tmp_path / 'test.db'))
     Base.metadata.create_all(engine)
     factory = sessionmaker(engine, expire_on_commit=False)

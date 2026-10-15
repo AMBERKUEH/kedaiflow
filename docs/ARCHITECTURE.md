@@ -40,7 +40,7 @@ Telegram updates commit before webhook acknowledgement or polling offset advance
 
 ## AI, files and privacy
 
-Without approved model credentials, deterministic extraction recognizes a narrow quantity/unit/price subset and always asks about dates and charges. Text PDFs use local text extraction; images/voice are retained for manual entry. Gemini receives bounded source bytes/text only when the server operator configures GEMINI_API_KEY, GEMINI_MODEL and MODEL_PROCESSING_APPROVED=true. Results identify provider/model/schema and cannot execute actions. Critical-field span grounding and merchant-language evaluation remain unfinished; whole-document provenance is explicitly labeled.
+Without approved model credentials, deterministic extraction recognizes a narrow quantity/unit/price subset and always asks about dates and charges. Text PDFs use local text extraction; images/voice are retained for manual entry. Groq receives bounded source text and optional explicitly configured inline image bytes only when the server operator configures GROQ_API_KEY, GROQ_MODEL and MODEL_PROCESSING_APPROVED=true. Results identify provider/model/schema and cannot execute actions. Critical-field span grounding and merchant-language evaluation remain unfinished; whole-document provenance is explicitly labeled.
 
 Uploads allow JPEG/PNG/PDF and documented audio types, cap size at 8 MB, validate basic signatures, limit image pixels/PDF pages and store content-addressed bytes privately. The API never serves storage as a public directory. PDF parsing has bounds but is not a hardened OS-level malware sandbox. Managed object storage, antivirus/CDR, encrypted backups, retention automation, per-tenant model quotas and a deployment privacy review remain release work.
 
@@ -54,3 +54,8 @@ Uploads allow JPEG/PNG/PDF and documented audio types, cap size at 8 MB, validat
 - Signals: owner-entered source links tied to actual deal IDs; no invented weather feed.
 - ML: disabled until consented labeled data, benchmark, shadow evaluation and approval exist.
 - UI: original SVG shop-bag companion, self-hosted fonts, cream/mint/navy, responsive views. Navigation and briefs support English/Malay/Chinese; full UI localization remains partial.
+
+
+## Groq language-model configuration - 16 October 2026
+
+The runtime now supports LLM_PROVIDER=groq or manual. Groq uses the fixed server-only OpenAI-compatible chat completion endpoint, strict JSON Schema for supported models and locally validated JSON mode for other selected models. Default GROQ_MODEL is openai/gpt-oss-20b. No Gemini runtime adapter or audio fallback remains. ElevenLabs handles speech; only its transcript reaches Groq. Local PDF text goes to the text model; image extraction requires an explicit GROQ_VISION_MODEL, and scanned PDFs without text remain manual review. All candidate money/date/quantity fields are locally validated; models have no action or financial authority.

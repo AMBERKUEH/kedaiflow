@@ -294,6 +294,7 @@ async def upload(request: Request, file: UploadFile = File(...)):
 
 
 @app.get('/v1/evidence/{record_id}/file')
+@app.get('/v1/evidence/{record_id}/audio')
 def download(record_id: str, request: Request):
     with Session() as db:
         actor = resolve_actor(db, request)
@@ -307,6 +308,10 @@ def download(record_id: str, request: Request):
         path = (settings.media / ev.storage_key).resolve()
         if not path.is_relative_to(settings.media) or not path.is_file():
             fail('NO_FILE', 'Private evidence file is unavailable.', 404)
+        if request.url.path.endswith('/audio'):
+            if ev.media_type not in ('audio/ogg','audio/mpeg','audio/wav','audio/mp4','audio/webm'):
+                fail('NOT_AUDIO', 'This evidence is not a supported audio recording.', 404)
+            return FileResponse(path, media_type=ev.media_type)
         return FileResponse(path, filename=ev.filename, media_type='application/octet-stream')
 
 
@@ -604,7 +609,9 @@ def pause(payload: s.PauseIn, request: Request):
 def connectors(request: Request):
     actor = actor_from(request)
     require(actor, 'read_finance')
-    return {'items': [{'name': 'Telegram', 'status': 'configured_unverified' if settings.telegram_token else 'not_connected', 'setup': 'TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_ID and authenticated binding'}, {'name': 'Gemini extraction', 'status': 'configured_unverified' if settings.gemini_key and settings.model_approved else 'manual_review', 'setup': 'GEMINI_API_KEY, GEMINI_MODEL and MODEL_PROCESSING_APPROVED'}, {'name': 'Bank feed', 'status': 'not_connected', 'setup': 'Use reviewed statement imports; select and authorize a bank provider later.'}, {'name': 'MyInvois / ERP', 'status': 'draft_export_only', 'setup': 'Taxpayer/provider authorization and adapter validation required.'}, {'name': 'Anomaly ML', 'status': 'disabled', 'setup': 'Consented data, reviewed labels and evaluation required.'}]}
+    from .speech import selected_provider
+    speech_status = 'not_connected' if not settings.elevenlabs_key else 'configured_unverified' if settings.speech_approved else 'processing_approval_required'
+    return {'items': [{'name': 'ElevenLabs speech to text', 'status': speech_status, 'setup': 'Set ELEVENLABS_API_KEY in private .env and SPEECH_PROCESSING_APPROVED=true. Selected speech provider: ' + selected_provider()}, {'name': 'Telegram', 'status': 'configured_unverified' if settings.telegram_token else 'not_connected', 'setup': 'TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_ID and authenticated binding'}, {'name': 'Groq extraction and translation', 'status': 'manual_review' if settings.llm_provider=='manual' else 'not_connected' if not settings.groq_key else 'configured_unverified' if settings.model_approved else 'processing_approval_required', 'setup': 'LLM_PROVIDER=groq; GROQ_API_KEY, GROQ_MODEL and MODEL_PROCESSING_APPROVED in private .env. Text model: ' + settings.groq_model}, {'name': 'Bank feed', 'status': 'not_connected', 'setup': 'Use reviewed statement imports; select and authorize a bank provider later.'}, {'name': 'MyInvois / ERP', 'status': 'draft_export_only', 'setup': 'Taxpayer/provider authorization and adapter validation required.'}, {'name': 'Anomaly ML', 'status': 'disabled', 'setup': 'Consented data, reviewed labels and evaluation required.'}]}
 
 
 @app.get('/v1/brief')
@@ -650,4 +657,6 @@ async def telegram_webhook(request: Request):
 
 from .extensions import install
 install(app, command, lambda: Session(), lambda **kwargs: transaction(**kwargs))
+from .bijaksense.routes import install as install_bijaksense
+install_bijaksense(app, lambda: Session(), lambda **kwargs: transaction(**kwargs))
 

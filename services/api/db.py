@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, event, select, text
 from sqlalchemy.orm import sessionmaker
 from .config import settings
 from .models import Base, Business
+from .bijaksense import models as flow_models  # register additive FLOW tables
 
 
 def make_engine(url):

@@ -9,7 +9,7 @@ Every section of the supplied PRD is preserved below. “Core tested” does not
 | 03 / Complete feature map | STATUS.md preserves every feature group and remaining depth | Mixed; see detailed status |
 | 04 / Signature journey: from voice to cash | domain.py / companion; text-to-deal, invoice, receipt, scenario and action tests | Implemented and tested locally; live voice integration blocked |
 | 05 / Telegram intake & channel behavior | telegram.py: durable intake, private actor binding, groups denied, outbound status | Mock/HTTP tested; live token unavailable; full chat journeys incomplete |
-| 06 / Language, voice & meaning preservation | ai.py, multilingual intent registry, brief templates, UI navigation languages | Rules tested; Gemini adapter unverified; full localization/glossary unfinished |
+| 06 / Language, voice & meaning preservation | ai.py, multilingual intent registry, brief templates, UI navigation languages | Rules tested; Groq adapter unverified; full localization/glossary unfinished |
 | 07 / Documents, extraction & business memory | media.py, private upload/download, source hashes, candidates, version history | Local intake tested; provider OCR unverified; field spans/sandbox unfinished |
 | 08 / Deal, order & delivery lifecycle | Deal/DealVersion/Delivery models; confirm/amend and invoice-link tests | Core tested; inventory, returns and split-billing unfinished |
 | 09 / Receivables & intelligent collection | Invoice/Promise/Action; aging, exact drafts, pre-send cancellation | Core tested; automated cadence and rich collections policy unfinished |
@@ -32,7 +32,7 @@ Every section of the supplied PRD is preserved below. “Core tested” does not
 | 26 / Jobs, events & recovery design | Job leases, retries, unknown external outcomes, transaction-bound enqueue | Local recovery tested; full event outbox/operations ownership unfinished |
 | 27 / Security, privacy & offline limits | Scope, origin checks, hashed sessions, private files; architecture limitations | Local tested; production privacy/retention/sandbox/offline work remains |
 | 28 / Failure handling & nonfunctional targets | Manual fallback, error UI, recovery cases, no invented success | Functional tests pass; service targets and usability targets unmeasured |
-| 29 / Evaluation suite & release criteria | tests/test_workflows.py, test_boundaries.py, test_extended_flow.py | 33 tests passed; no claimed full PRD release pass |
+| 29 / Evaluation suite & release criteria | tests/test_workflows.py, test_boundaries.py, test_extended_flow.py | 82 tests passed; no claimed full PRD release pass |
 | 30 / Competition mapping & demonstration | docs/DEMO.md, synthetic fixture files and simulator seed | Local demonstration verified; organizer rubric not revalidated |
 | 31 / Product metrics, economics & validation | STATUS.md and financial metric semantics; no pilot metrics fabricated | Merchant research/economics/backtesting not performed |
 | 32 / Implementation plan & developer handoff | Runnable repository, contracts, tests, docs, dependency locks | Core delivered; full-product gates remain open |
@@ -61,7 +61,7 @@ Every section of the supplied PRD is preserved below. “Core tested” does not
 | 55 / AI service contracts and model evaluation | Candidate-only adapters, deterministic arithmetic and permission boundary | Rules tested; provider/language ground-truth evaluation blocked |
 | 56 / User interface specification: detailed states | Responsive companion forms, review previews, chart tables, source labels | Build/typecheck/browser passed; complete a11y/localization/offline audit remains |
 | 57 / Full-product deployment and operations | compose, launcher, jobs health, pause, unknown outcomes, locks | Local lifecycle tested; managed deployment/backups/retention incomplete |
-| 58 / Extended acceptance and adversarial test plan | Automated adversarial/financial/integration boundaries test suite | 33 tests pass; full 22-case acceptance coverage not claimed |
+| 58 / Extended acceptance and adversarial test plan | Automated adversarial/financial/integration boundaries test suite | 82 tests pass; full 22-case acceptance coverage not claimed |
 | 59 / Competition demonstration and measurable completion | DEMO.md, seed, fixtures and validation report | Local connected demo; live provider evidence unavailable |
 | 60 / Reference kit: delivery contents and validation status | Reference ZIP not supplied; independent transport implementation | No reference-kit reuse or claimed validation |
 | 61 / Additional sources and implementation decisions | ARCHITECTURE choices; STATUS release gates; original source notes | Decisions recorded; full product acceptance remains open |

@@ -1,4 +1,4 @@
-param([switch]$SkipBuild, [switch]$NoBrowser)
+param([switch]$SkipBuild, [switch]$NoBrowser, [switch]$InstallDependencies)
 $ErrorActionPreference = 'Stop'
 $projectRoot = $PSScriptRoot
 Set-Location -LiteralPath $projectRoot
@@ -7,8 +7,14 @@ New-Item -ItemType Directory -Force -Path $localDir | Out-Null
 if (Test-Path -LiteralPath (Join-Path $localDir 'processes.json')) { throw 'A prior launch is recorded. Run Stop-KedaiFlow.ps1 before starting again.' }
 if (-not (Test-Path -LiteralPath '.venv\Scripts\python.exe')) { python -m venv .venv; if ($LASTEXITCODE) { throw 'Python environment creation failed.' } }
 $pythonExe = Join-Path $projectRoot '.venv\Scripts\python.exe'
-& $pythonExe -m pip install -r requirements.lock.txt
-if ($LASTEXITCODE) { throw 'Backend dependency installation failed.' }
+$backendLock = Join-Path $projectRoot 'requirements.lock.txt'
+$backendStamp = Join-Path $localDir 'backend-lock.sha256'
+$backendHash = (Get-FileHash -LiteralPath $backendLock -Algorithm SHA256).Hash
+if ($InstallDependencies -or -not (Test-Path -LiteralPath $backendStamp) -or (Get-Content -LiteralPath $backendStamp -Raw).Trim() -ne $backendHash) {
+    & $pythonExe -m pip install -r $backendLock
+    if ($LASTEXITCODE) { throw 'Backend dependency installation failed.' }
+    Set-Content -LiteralPath $backendStamp -Value $backendHash
+}
 & $pythonExe -m scripts.migrate
 if ($LASTEXITCODE) { throw 'Database migration failed.' }
 & $pythonExe -m services.api.seed
@@ -16,8 +22,14 @@ if ($LASTEXITCODE) { throw 'Fixture seed failed.' }
 $webDir = Join-Path $projectRoot 'apps\companion'
 Push-Location -LiteralPath $webDir
 try {
-    npm.cmd ci
-    if ($LASTEXITCODE) { throw 'Frontend dependency installation failed.' }
+    $frontendHash = (Get-FileHash -LiteralPath 'package-lock.json' -Algorithm SHA256).Hash
+    $frontendStamp = Join-Path $localDir 'frontend-lock.sha256'
+    $nextCli = Join-Path $webDir 'node_modules\next\dist\bin\next'
+    if ($InstallDependencies -or -not (Test-Path -LiteralPath $nextCli) -or -not (Test-Path -LiteralPath $frontendStamp) -or (Get-Content -LiteralPath $frontendStamp -Raw).Trim() -ne $frontendHash) {
+        npm.cmd ci
+        if ($LASTEXITCODE) { throw 'Frontend dependency installation failed. Stop this project''s running Node services and retry; Windows may lock the native compiler while it is in use.' }
+        Set-Content -LiteralPath $frontendStamp -Value $frontendHash
+    }
     if (-not $SkipBuild) { npm.cmd run build; if ($LASTEXITCODE) { throw 'Frontend build failed.' } }
 } finally { Pop-Location }
 $launches = @()
@@ -25,6 +37,8 @@ $apiProcess = Start-Process -FilePath $pythonExe -ArgumentList '-m','uvicorn','s
 $launches += @{Id=$apiProcess.Id;StartTime=$apiProcess.StartTime.ToUniversalTime().ToString('o')}
 $workerProcess = Start-Process -FilePath $pythonExe -ArgumentList '-m','services.api.worker' -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $localDir 'worker.log') -RedirectStandardError (Join-Path $localDir 'worker-error.log')
 $launches += @{Id=$workerProcess.Id;StartTime=$workerProcess.StartTime.ToUniversalTime().ToString('o')}
+$flowProcess = Start-Process -FilePath $pythonExe -ArgumentList '-m','services.api.bijaksense.jobs' -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $localDir 'bijaksense.log') -RedirectStandardError (Join-Path $localDir 'bijaksense-error.log')
+$launches += @{Id=$flowProcess.Id;StartTime=$flowProcess.StartTime.ToUniversalTime().ToString('o')}
 $nodeExe = (Get-Command node.exe).Source
 $webProcess = Start-Process -FilePath $nodeExe -ArgumentList 'node_modules\next\dist\bin\next','start','--hostname','127.0.0.1' -WorkingDirectory $webDir -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $localDir 'web.log') -RedirectStandardError (Join-Path $localDir 'web-error.log')
 $launches += @{Id=$webProcess.Id;StartTime=$webProcess.StartTime.ToUniversalTime().ToString('o')}

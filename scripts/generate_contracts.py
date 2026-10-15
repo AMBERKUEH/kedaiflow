@@ -12,6 +12,8 @@ target.mkdir(parents=True, exist_ok=True)
 (target / 'openapi.json').write_text(json.dumps(app.openapi(), indent=2, ensure_ascii=False), encoding='utf-8')
 ddl = ['-- KedaiFlow 0001: initial schema. Generated from services/api/models.py.', 'BEGIN;']
 for table in Base.metadata.sorted_tables:
+    if table.name.startswith('flow_'):
+        continue  # Additive migration 0003 owns FLOW; never rewrite ledger history.
     ddl.append(str(CreateTable(table).compile(dialect=postgresql.dialect())) + ';')
     for index in sorted(table.indexes, key=lambda i: i.name):
         ddl.append(str(CreateIndex(index).compile(dialect=postgresql.dialect())) + ';')
@@ -27,6 +29,8 @@ GRANT EXECUTE ON FUNCTION public.kf_finance_member(text) TO authenticated;''']
 private = {'identities','sessions','memberships','operations','telegram_inbox','bind_codes','bindings','callbacks','recipient_invites','jobs','evidence','supplements'}
 for table in Base.metadata.sorted_tables:
     name = table.name
+    if name.startswith('flow_'):
+        continue  # FLOW is API-only; 0003 owns its stricter direct-client policy.
     rls += [f'ALTER TABLE public.{name} ENABLE ROW LEVEL SECURITY;', f'REVOKE ALL ON public.{name} FROM anon, authenticated;']
     if name not in private and ('business_id' in table.c or name=='businesses'):
         key = 'id' if name=='businesses' else 'business_id'

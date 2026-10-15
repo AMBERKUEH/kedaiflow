@@ -1,10 +1,12 @@
 # KedaiFlow
 
+**FLOW / BijakSense is implemented:** five source-backed market modules, a merchant dashboard, multilingual hybrid retrieval, Qwen recommendations and scheduled refresh. Start with [BijakSense setup and API requirements](docs/BIJAKSENSE.md). Open `http://localhost:3000/?section=bijaksense`. Your existing Groq key is reused; a commercial Open-Meteo key is the additional credential needed for commercial weather usage.
+
 **Understand the deal. Follow the money.**
 
 A locally runnable financial companion for Malaysian merchants. Next.js / React / TypeScript frontend, FastAPI domain API, durable SQL-backed worker, exact integer-sen calculations, private evidence, and Telegram transport.
 
-This is an initial working local implementation, **not completion of every requirement in the 61-section PRD**. Read [implementation status](docs/STATUS.md) and [requirements traceability](docs/REQUIREMENTS.md) before treating a capability as production-ready. No real bank, Telegram bot, Gemini account, ERP or MyInvois credentials were supplied. No customer was contacted, official invoice submitted, money moved, deployment made or GitHub upload performed.
+This is an initial working local implementation, **not completion of every requirement in the 61-section PRD**. Read [implementation status](docs/STATUS.md) and [requirements traceability](docs/REQUIREMENTS.md) before treating a capability as production-ready. Groq and ElevenLabs connections were verified on synthetic inputs on 16 October 2026. No real bank, Telegram bot, ERP or MyInvois credentials were supplied. No customer was contacted, official invoice submitted, money moved, deployment made or GitHub upload performed.
 
 ## Start on Windows
 
@@ -100,6 +102,10 @@ scripts/             Migration, contract generation and verification utilities
 ```
 
 ## Integration setup
+
+**Groq is the configured LLM provider.** See [Groq settings](docs/GROQ.md). Save `GROQ_API_KEY` in private `.env`; `GROQ_MODEL` defaults to `openai/gpt-oss-20b`. Both native services and Docker Compose use these settings. `python -m scripts.configure_groq` applies/migrates local settings without printing keys; `python -m scripts.check_llm` checks configuration. The Groq migration passes 82 backend tests; both saved keys passed live synthetic checks on 16 October 2026.
+
+**ElevenLabs speech to text is implemented.** Save `ELEVENLABS_API_KEY` in private `.env`, or run `python -m scripts.configure_speech` to migrate a key saved in `.env.example`. See [speech setup and testing](docs/SPEECH_TO_TEXT.md). The adapter supports reviewable transcripts, word timings, original audio playback and correction history; Groq remains optional for translation/deeper extraction. A live synthetic ElevenLabs transcription and its handoff to Groq passed on 16 October 2026. The updated test suite passes 54 tests, and the frontend production build passes.
 
 Copy `.env.example` to `.env` and enter secrets locally. Never commit it. [Telegram setup](docs/TELEGRAM.md) explains BotFather, pairing, polling, webhook switching, recipient verification and approval callbacks. [Architecture and decisions](docs/ARCHITECTURE.md) describes financial semantics and limitations. [Demo script](docs/DEMO.md) gives a reproducible competition story.
 

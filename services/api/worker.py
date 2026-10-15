@@ -22,7 +22,14 @@ def claim_job():
                 if action and action.status == 'executing':
                     action.status, action.outcome = 'outcome_unknown', job.error
             else:
-                job.status = 'queued' if job.attempts < 3 else 'dead_letter'
+                evidence = db.get(Evidence, job.record_id) if job.kind == 'extract' else None
+                pending_speech = evidence and evidence.extraction.get('speech_request') == 'in_flight'
+                if pending_speech:
+                    job.status, job.error = 'outcome_unknown', 'SPEECH_OUTCOME_UNKNOWN: Worker stopped during a paid transcription. Check provider usage before retrying.'
+                    evidence.status = 'transcription_uncertain'
+                    evidence.extraction = {**evidence.extraction, 'speech_error': {'code':'SPEECH_OUTCOME_UNKNOWN','message':job.error}}
+                else:
+                    job.status = 'queued' if job.attempts < 3 else 'dead_letter'
         job = db.scalar(select(Job).where(Job.status == 'queued', Job.available_at <= now()).order_by(Job.created_at).with_for_update(skip_locked=True).limit(1))
         if not job:
             return None
@@ -33,6 +40,7 @@ def claim_job():
 def extract_job(job):
     from .ai import model_extract
     from .media import pdf_text
+    from .speech import selected_provider, transcribe_audio
     with Session() as db:
         ev = db.get(Evidence, job['record_id'])
         if not ev or ev.business_id != job['business_id']:
@@ -40,14 +48,49 @@ def extract_job(job):
         ev_data = d.serial(ev)
     media = (settings.media / ev_data['storage_key']).read_bytes() if ev_data['storage_key'] else None
     text = ev_data['text']
+    transcription = ev_data['extraction'].get('transcription')
+    reviewed = ev_data['extraction'].get('reviewed_transcript')
+    if reviewed:
+        text = reviewed['text']
+    elif transcription:
+        text = transcription['text']
+    is_audio = (ev_data['media_type'] or '').startswith('audio/')
+    provider = selected_provider() if is_audio else None
+    if is_audio and provider == 'elevenlabs':
+        # Persist the paid transcription before downstream extraction so a
+        # language-model failure does not incur a second speech request.
+        if not transcription and not reviewed:
+            with transaction(business_id=job['business_id']) as db:
+                current = db.get(Evidence, job['record_id'])
+                current.extraction = {**current.extraction, 'speech_request': 'in_flight'}
+            transcription = transcribe_audio(media, ev_data['media_type'], ev_data['id'])
+            with transaction(business_id=job['business_id']) as db:
+                current = db.get(Evidence, job['record_id'])
+                current.extraction = {**current.extraction, 'transcription': transcription, 'speech_request': 'completed'}
+        text = reviewed['text'] if reviewed else transcription['text']
     pages = []
     if ev_data['media_type'] == 'application/pdf' and media:
         pages = pdf_text(media)
         text = '\n'.join(p['text'] for p in pages)[:30000]
-    result = model_extract(text, ev_data['id'], media, ev_data['media_type'])
+    # Groq receives the reviewed/transcribed text, never the raw audio bytes.
+    analysis_media = None if is_audio else media
+    if is_audio and provider == 'manual':
+        from .ai import rule_extract
+        result = rule_extract(text, ev_data['id'])
+    else:
+        result = model_extract(text, ev_data['id'], analysis_media, ev_data['media_type'])
+    if transcription:
+        result['transcription'] = transcription
+        result['transcript'] = reviewed['text'] if reviewed else transcription['text']
+        result['audio_evidence'] = transcription['segments']
+        if result['provider'] == 'deterministic_review':
+            result['warning'] = 'ElevenLabs transcript and rule-extracted candidates need merchant review. Translation is not configured; dates are not inferred.'
     if pages:
         result['pages'] = pages
-    no_parse = not text and not (settings.gemini_key and settings.model_approved)
+    if reviewed:
+        result['reviewed_transcript'] = reviewed
+        result['transcript_reviews'] = ev_data['extraction'].get('transcript_reviews',[])
+    no_parse = not text and not result.get('transcript')
     with transaction(business_id=job['business_id']) as db:
         ev = db.get(Evidence, job['record_id'])
         ev.extraction = result
@@ -122,9 +165,25 @@ def tick():
             execute_job(job)
         else:
             raise ValueError('Unknown job kind')
-    except Exception:
+    except Exception as exc:
+        from .speech import SpeechError
+        from .ai import LLMError
         with transaction(business_id=job['business_id']) as db:
             current = db.get(Job, job['id'])
+            if isinstance(exc, SpeechError):
+                current.error = exc.code + ': ' + str(exc)
+                current.status = 'outcome_unknown' if exc.uncertain else 'needs_review'
+                evidence = db.get(Evidence, job['record_id'])
+                evidence.status = 'transcription_uncertain' if exc.uncertain else 'transcription_failed'
+                evidence.extraction = {**evidence.extraction, 'speech_request': 'unknown' if exc.uncertain else 'failed', 'speech_error': {'code': exc.code, 'message': str(exc)}}
+                return True
+            if isinstance(exc, LLMError):
+                current.error = exc.code + ': ' + str(exc)
+                current.status = 'needs_review'
+                evidence = db.get(Evidence, job['record_id'])
+                evidence.status = 'extraction_failed'
+                evidence.extraction = {**evidence.extraction, 'model_error': {'code':exc.code,'message':str(exc)}}
+                return True
             current.error = 'Processing failed. Source preserved; inspect configuration or enter data manually.'
             if current.kind == 'execute_action':
                 current.status = 'outcome_unknown'

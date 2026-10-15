@@ -13,6 +13,15 @@ class Reason(s.Model):
     reason: str = Field(min_length=3, max_length=1000)
 
 
+class RetryRequest(Reason):
+    accept_possible_duplicate_charge: bool = False
+
+
+class TranscriptReview(s.Expected):
+    text: str = Field(min_length=1,max_length=30000)
+    reason: str = Field(min_length=3,max_length=1000)
+
+
 class LinkInvoice(s.Model):
     invoice_id: str
     expected_version: s.Version
@@ -37,6 +46,66 @@ class RecipientConfirm(s.Expected):
 
 
 def install(app, command, Session, transaction):
+    @app.post('/v1/evidence/{record_id}/transcript-review')
+    def transcript_review(record_id: str, payload: TranscriptReview, request: Request):
+        def run(db,actor,data):
+            require(actor,'trade')
+            ev=scoped(db,Evidence,record_id,actor)
+            if actor.role=='sales' and ev.creator_id!=actor.user_id:
+                fail('FORBIDDEN','This evidence is not assigned to you.',403)
+            d.version(ev,data['expected_version'])
+            if ev.kind!='voice':
+                fail('NOT_VOICE','Transcript review requires voice evidence.',422)
+            active=db.scalar(select(Job).where(Job.business_id==actor.business_id,Job.record_id==ev.id,Job.status.in_(['queued','processing'])))
+            if active:
+                fail('PROCESSING_ACTIVE','Wait for the current extraction to finish before correcting its transcript.')
+            from .ai import rule_extract
+            corrected=rule_extract(data['text'],ev.id)
+            original=ev.extraction
+            history=original.get('transcript_reviews',[])
+            review={'text':data['text'],'reason':data['reason'],'actor_id':actor.user_id,'reviewed_at':now().isoformat()}
+            # Raw provider transcript stays immutable and separately inspectable.
+            ev.extraction={**original,**corrected,'transcription':original.get('transcription'),'transcript_reviews':history+[review],'reviewed_transcript':review,'warning':'Merchant-corrected transcript; candidate terms still require confirmation. Existing confirmed records have not been changed.'}
+            ev.status,ev.version='needs_review',ev.version+1
+            d.audit(db,actor,'TranscriptCorrectionRecorded',ev,reason=data['reason'])
+            return {'id':ev.id,'version':ev.version,'status':ev.status}
+        return command(request,payload,'transcript-review:'+record_id,run)
+
+    @app.get('/v1/evidence/{record_id}/processing')
+    def evidence_processing(record_id: str, request: Request):
+        with Session() as db:
+            actor = resolve_actor(db, request)
+            ev = scoped(db, Evidence, record_id, actor)
+            if actor.role == 'sales':
+                require(actor, 'trade')
+                if ev.creator_id != actor.user_id:
+                    fail('FORBIDDEN','This evidence is not assigned to you.',403)
+            else:
+                require(actor, 'read_finance')
+            job = db.scalar(select(Job).where(Job.business_id==actor.business_id, Job.record_id==ev.id, Job.kind=='extract').order_by(Job.created_at.desc()))
+            return {'evidence_status':ev.status,'job_id':job.id if job else None,'job_status':job.status if job else None,'error':job.error if job else None}
+
+    @app.post('/v1/evidence/{record_id}/retry')
+    def evidence_retry(record_id: str, payload: RetryRequest, request: Request):
+        def run(db, actor, data):
+            require(actor,'trade')
+            ev=scoped(db,Evidence,record_id,actor)
+            if actor.role=='sales' and ev.creator_id!=actor.user_id:
+                fail('FORBIDDEN','This evidence is not assigned to you.',403)
+            job=db.scalar(select(Job).where(Job.business_id==actor.business_id, Job.record_id==ev.id, Job.kind=='extract').order_by(Job.created_at.desc()))
+            if not job or job.status not in ('dead_letter','completed','needs_review','outcome_unknown'):
+                fail('JOB_NOT_RETRYABLE','The extraction is already queued or processing.')
+            if job.status=='outcome_unknown':
+                require(actor,'approve')
+                if not data['accept_possible_duplicate_charge']:
+                    fail('SPEECH_USAGE_REVIEW_REQUIRED','Review provider usage and acknowledge the possible duplicate charge before retrying.')
+            job.status, job.attempts, job.available_at, job.error='queued',0,now(),None
+            ev.status='queued'
+            ev.extraction={k:v for k,v in ev.extraction.items() if k not in ('speech_error','speech_request')}
+            d.audit(db,actor,'EvidenceProcessingRetryRequested',ev,reason=data['reason'])
+            return {'evidence_id':ev.id,'job_id':job.id,'status':'queued'}
+        return command(request,payload,'evidence-retry:'+record_id,run)
+
     @app.get('/v1/cases/{record_id}/evidence')
     def case_evidence(record_id: str, request: Request):
         with Session() as db:
@@ -130,12 +199,16 @@ def install(app, command, Session, transaction):
             return {'items': result}
 
     @app.post('/v1/jobs/{record_id}/retry')
-    def retry(record_id: str, payload: Reason, request: Request):
+    def retry(record_id: str, payload: RetryRequest, request: Request):
         def run(db, actor, data):
             require(actor, 'write_finance')
             job = scoped(db, Job, record_id, actor)
-            if job.kind != 'extract' or job.status not in ('dead_letter', 'completed'):
+            if job.kind != 'extract' or job.status not in ('dead_letter', 'completed', 'needs_review', 'outcome_unknown'):
                 fail('RETRY_UNSAFE', 'Only extraction jobs can be retried. External outcomes require reconciliation.')
+            if job.status == 'outcome_unknown':
+                require(actor, 'approve')
+                if not data['accept_possible_duplicate_charge']:
+                    fail('SPEECH_USAGE_REVIEW_REQUIRED', 'Check provider usage, then explicitly acknowledge a possible duplicate transcription charge before retrying.')
             job.status, job.attempts, job.available_at = 'queued', 0, now()
             job.version += 1
             d.audit(db, actor, 'ExtractionRetryRequested', job, reason=data['reason'])

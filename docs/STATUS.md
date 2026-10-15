@@ -1,5 +1,9 @@
 # Implementation status — 7 October 2026
 
+Update, 16 October 2026: Groq replaces Gemini at runtime for structured extraction/translation. ElevenLabs still transcribes voice notes, and the financial/approval services remain deterministic. Private `.env`, placeholder template, Docker environment and connector status are updated. **82 backend tests pass.** Both Groq and ElevenLabs subsequently passed live synthetic checks on 16 October 2026; other integration gates remain open. Current model settings and media limitations: GROQ.md.
+
+Update, 16 October 2026: ElevenLabs Scribe speech-to-text is now implemented and mock/integration-tested in the shared audio worker. Audio replay, transcript correction/history, timed/speaker provenance and guarded retries are available in the companion. **54 tests and the updated frontend production build pass.** A saved key was not present, so live ElevenLabs verification is pending. Full instructions: SPEECH_TO_TEXT.md. This supersedes the earlier statements that voice is manual-only; unrelated full-PRD gaps remain open.
+
 The local application is runnable and the connected core workflow has passed automated and browser checks. **The full PRD is not complete.** This file preserves unfinished scope instead of relabeling it as finished or merely credential-blocked.
 
 ## Implemented and tested locally
@@ -25,7 +29,7 @@ The local application is runnable and the connected core workflow has passed aut
 
 - PostgreSQL DDL/driver path and Supabase RLS policy migration. Docker's engine was unavailable/nonresponsive; SQLite concurrency results do not prove PostgreSQL behavior.
 - Supabase JWT verification adapter. Browser Supabase sign-in and authenticated tenant bootstrap still need integration work.
-- Gemini structured extraction/translation/transcription adapter. No credentials, consented evaluation set, critical-field quality benchmark or paid provider call was used.
+- Groq structured extraction/translation adapter. No credentials, consented evaluation set, critical-field quality benchmark or paid provider call was used. Speech transcription uses ElevenLabs separately.
 - Live Telegram polling/webhook registration, actual downloads and authorized sends. Mock adapter tests are not live delivery evidence.
 - Recipient invite/owner verification and exact bilateral confirmation have application paths; live identity assurance must be verified with an authorized test bot.
 
@@ -42,7 +46,7 @@ The local application is runnable and the connected core workflow has passed aut
 | Capability | Exact setup needed |
 |---|---|
 | Telegram | BotFather development bot; server-only TELEGRAM_BOT_TOKEN / TELEGRAM_BOT_ID; staff and recipient binding; webhook secret + HTTPS domain only for webhook mode |
-| Gemini | GEMINI_API_KEY, explicit GEMINI_MODEL, MODEL_PROCESSING_APPROVED=true after approved handling/retention policy; run multilingual ground-truth evaluation |
+| Groq | GROQ_API_KEY, explicit GROQ_MODEL, MODEL_PROCESSING_APPROVED=true after approved handling/retention policy; run multilingual ground-truth evaluation |
 | Supabase | SUPABASE_URL/JWT audience, reviewed migrations, restricted database roles, separate auth onboarding and private Storage integration |
 | Live bank | Select a provider/institution and approve consent/status semantics; implement/test provider-specific authenticated read/reversal adapter. Credentials alone are insufficient. |
 | ERP / MyInvois | Choose provider/taxpayer sandbox, mappings and official document schemas; implement/test external adapter and reconciliation. Credentials alone are insufficient. |

@@ -398,6 +398,43 @@
         }
       }
     },
+    "/v1/evidence/{record_id}/audio": {
+      "get": {
+        "summary": "Download",
+        "operationId": "download_v1_evidence__record_id__audio_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/evidence/{record_id}/file": {
       "get": {
         "summary": "Download",
@@ -1648,6 +1685,137 @@
         }
       }
     },
+    "/v1/evidence/{record_id}/transcript-review": {
+      "post": {
+        "summary": "Transcript Review",
+        "operationId": "transcript_review_v1_evidence__record_id__transcript_review_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranscriptReview"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/{record_id}/processing": {
+      "get": {
+        "summary": "Evidence Processing",
+        "operationId": "evidence_processing_v1_evidence__record_id__processing_get",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/evidence/{record_id}/retry": {
+      "post": {
+        "summary": "Evidence Retry",
+        "operationId": "evidence_retry_v1_evidence__record_id__retry_post",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/cases/{record_id}/evidence": {
       "get": {
         "summary": "Case Evidence",
@@ -1821,7 +1989,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/services__api__extensions__Reason"
+                "$ref": "#/components/schemas/RetryRequest"
               }
             }
           }
@@ -2114,6 +2282,533 @@
             "content": {
               "application/json": {
                 "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/overview": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Overview",
+        "operationId": "overview_api_bijaksense_overview_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/context": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Get Context",
+        "operationId": "get_context_api_bijaksense_context_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Set Context",
+        "operationId": "set_context_api_bijaksense_context_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContextInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/signals": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Signals",
+        "operationId": "signals_api_bijaksense_signals_get",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "supply_chain",
+                    "commodities",
+                    "weather",
+                    "trends",
+                    "competitors"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 10000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "relevant_only",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Relevant Only"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/signals/{signal_id}": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Signal",
+        "operationId": "signal_api_bijaksense_signals__signal_id__get",
+        "parameters": [
+          {
+            "name": "signal_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Signal Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/commodities": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Commodities",
+        "operationId": "commodities_api_bijaksense_commodities_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/weather": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Weather",
+        "operationId": "weather_api_bijaksense_weather_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/trends": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Trends",
+        "operationId": "trends_api_bijaksense_trends_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/competitors": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Competitors",
+        "operationId": "competitors_api_bijaksense_competitors_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Add Competitor",
+        "operationId": "add_competitor_api_bijaksense_competitors_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompetitorInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/competitors/{competitor_id}/disable": {
+      "post": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Disable Competitor",
+        "operationId": "disable_competitor_api_bijaksense_competitors__competitor_id__disable_post",
+        "parameters": [
+          {
+            "name": "competitor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Competitor Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/insights": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Insights",
+        "operationId": "insights_api_bijaksense_insights_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 40,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/insights/{insight_id}/feedback": {
+      "post": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Feedback",
+        "operationId": "feedback_api_bijaksense_insights__insight_id__feedback_post",
+        "parameters": [
+          {
+            "name": "insight_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Insight Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FeedbackInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/refresh": {
+      "post": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Refresh",
+        "operationId": "refresh_api_bijaksense_refresh_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/analyze": {
+      "post": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Analyze",
+        "operationId": "analyze_api_bijaksense_analyze_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/bijaksense/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "FLOW / BijakSense"
+        ],
+        "summary": "Job",
+        "operationId": "job_api_bijaksense_jobs__job_id__get",
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -2574,6 +3269,43 @@
         ],
         "title": "CaseReview"
       },
+      "CompetitorInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 1500,
+            "title": "Url"
+          },
+          "source_type": {
+            "type": "string",
+            "enum": [
+              "website",
+              "rss"
+            ],
+            "title": "Source Type",
+            "default": "website"
+          },
+          "public_access_confirmed": {
+            "type": "boolean",
+            "const": true,
+            "title": "Public Access Confirmed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "url",
+          "public_access_confirmed"
+        ],
+        "title": "CompetitorInput"
+      },
       "Confirm": {
         "properties": {
           "expected_version": {
@@ -2609,6 +3341,88 @@
           "charges"
         ],
         "title": "Confirm"
+      },
+      "ContextInput": {
+        "properties": {
+          "industry": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Industry"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Location"
+          },
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          },
+          "products": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Products"
+          },
+          "materials": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Materials"
+          },
+          "markets": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Markets"
+          },
+          "commodities": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Commodities"
+          },
+          "cost_categories": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "maxProperties": 10,
+            "title": "Cost Categories"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "industry",
+          "location",
+          "latitude",
+          "longitude"
+        ],
+        "title": "ContextInput"
       },
       "DealIn": {
         "properties": {
@@ -2995,6 +3809,33 @@
           "expected_version"
         ],
         "title": "Expected"
+      },
+      "FeedbackInput": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "acknowledged",
+              "dismissed",
+              "useful",
+              "not_relevant",
+              "new"
+            ],
+            "title": "Status"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Note",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "FeedbackInput"
       },
       "HTTPValidationError": {
         "properties": {
@@ -3821,6 +4662,27 @@
         ],
         "title": "Register"
       },
+      "RetryRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Reason"
+          },
+          "accept_possible_duplicate_charge": {
+            "type": "boolean",
+            "title": "Accept Possible Duplicate Charge",
+            "default": false
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "RetryRequest"
+      },
       "ScenarioIn": {
         "properties": {
           "name": {
@@ -4004,6 +4866,35 @@
           "assumption"
         ],
         "title": "SignalIn"
+      },
+      "TranscriptReview": {
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 30000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "expected_version",
+          "text",
+          "reason"
+        ],
+        "title": "TranscriptReview"
       },
       "ValidationError": {
         "properties": {

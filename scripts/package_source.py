@@ -9,7 +9,7 @@ with ZipFile(destination,'w',ZIP_DEFLATED) as archive:
         relative = path.relative_to(root)
         if not path.is_file() or excluded.intersection(relative.parts):
             continue
-        if path.name == '.env' or path.name.endswith(('.db','.db-shm','.db-wal','.pyc','.tsbuildinfo')):
+        if (path.name.startswith('.env') and path.name != '.env.example') or path.name.endswith(('.db','.db-shm','.db-wal','.pyc','.tsbuildinfo')):
             continue
         archive.write(path, Path('kedaiflow') / relative)
 print(f'Source-only package: {destination.name}')

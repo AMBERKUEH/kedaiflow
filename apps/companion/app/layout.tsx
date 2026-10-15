@@ -9,5 +9,6 @@ import '@fontsource/manrope/700.css';
 import '@fontsource/manrope/800.css';
 import './globals.css';
 import './readability.css';
+import './bijaksense.css';
 export const metadata: Metadata = { title: 'KedaiFlow — Your business, a little clearer', description: 'Understand the deal. Follow the money. A financial companion for Malaysian merchants.' };
 export default function RootLayout({ children }: Readonly<{children: React.ReactNode}>) { return <html lang="en"><body>{children}</body></html>; }

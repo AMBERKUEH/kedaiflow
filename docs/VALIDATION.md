@@ -1,5 +1,23 @@
 # Validation evidence — 7 October 2026
 
+## Live provider checks - 16 October 2026
+
+Groq `openai/gpt-oss-20b` returned a schema-valid live extraction. ElevenLabs `scribe_v2` transcribed a short synthetic recording and returned 49 timed segments. A live handoff using the completed transcript produced the expected 20 crates, RM60 unit price (6,000 sen), null due date and English/Malay/Chinese translations. No real customer/business source was transmitted. Exactly two Groq requests and one ElevenLabs speech request were used in this check.
+
+Credentials were migrated into ignored `.env`, removed from `.env.example` and never displayed. This supersedes earlier missing-key/live-unverified notes for these two providers only. Other integration and full-product validation limits remain unchanged. Credential-free detailed evidence is in the private `.local/connection-test-report.json`.
+
+## Groq migration verification - 16 October 2026
+
+**82 pytest tests passed** after replacing the language-model adapter and settings. Groq coverage verifies strict required/nullable JSON schemas, JSON-mode model selection, English/Malay/Chinese output, original-text preservation, integer money/date/quantity validation, blocked model tool calls/refusals/truncation, redacted authentication/quota/network errors, controlled image/PDF/audio routing, worker review states, no Gemini fallback and safe credential migration. Existing financial, permission, speech and recovery tests continue to pass. JUnit report: test-results.xml.
+
+No `GROQ_API_KEY` was present in saved local files. All Groq API responses in the automated suite were mocked; no live provider quality or connectivity claim is made. The frontend code did not change in this migration.
+
+## Additional verification — 16 October 2026
+
+**54 pytest tests passed** after the ElevenLabs implementation, and the updated Next.js production build/TypeScript check passed. Speech-specific coverage includes multipart authentication, automatic language detection, timestamp grounding, provider failures without credential leakage, paid-request timeout/crash review, no automatic paid replay, transcript reuse after downstream failure, consent gating, manual mode, source-preserving corrections, and cross-tenant audio/status/retry rejection. JUnit results are saved in test-results.xml.
+
+The current saved environment files do not contain an ElevenLabs key. No real speech request was made; provider connection/accuracy remain unverified. See SPEECH_TO_TEXT.md for exact local setup and a one-request live test.
+
 ## Executed
 
 - Python 3.11.9 on Windows; locked FastAPI/SQLAlchemy dependencies.
@@ -26,3 +44,10 @@ Integration boundaries: authenticated durable webhook/dedup, shared-chat privacy
 - One upstream TestClient/httpx deprecation warning appears; it did not fail tests.
 
 The test count is not a claim that all PRD features or all acceptance criteria have been implemented. See REQUIREMENTS.md and STATUS.md.
+
+
+## FLOW / BijakSense ? 16 October 2026
+
+111 backend tests pass, including 29 FLOW cases. Two isolated live synthetic merchant profiles returned all five categories, multilingual Sentence Transformers/FAISS retrieval and validated Qwen selections. Next.js production build and TypeScript checks pass. See [BijakSense](BIJAKSENSE.md) for exact source coverage, limitations and reproducible evaluation commands. Browser DOM checks cover the integrated tab and evidence controls; browser screenshot capture was unavailable.
+
+The final demo worker refresh completed with validated Qwen recommendations across five categories. Open-Meteo returned HTTP 503 on that later refresh; the previous still-fresh sourced forecast was retained with the failed refresh status displayed. No forecast was fabricated or silently relabelled as newly retrieved.

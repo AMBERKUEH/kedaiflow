@@ -1,3 +1,21 @@
+x-provider-environment: &provider-environment
+  LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+  GROQ_API_KEY: ${GROQ_API_KEY:-}
+  GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
+  GROQ_VISION_MODEL: ${GROQ_VISION_MODEL:-}
+  MODEL_PROCESSING_APPROVED: ${MODEL_PROCESSING_APPROVED:-false}
+  SPEECH_PROVIDER: ${SPEECH_PROVIDER:-auto}
+  ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+  ELEVENLABS_STT_MODEL: ${ELEVENLABS_STT_MODEL:-scribe_v2}
+  ELEVENLABS_LANGUAGE_CODE: ${ELEVENLABS_LANGUAGE_CODE:-}
+  SPEECH_PROCESSING_APPROVED: ${SPEECH_PROCESSING_APPROVED:-false}
+  BIJAKSENSE_QWEN_MODEL: ${BIJAKSENSE_QWEN_MODEL:-qwen/qwen3.8-27b}
+  BIJAKSENSE_QWEN_API_KEY: ${BIJAKSENSE_QWEN_API_KEY:-}
+  BIJAKSENSE_OPEN_METEO_API_KEY: ${BIJAKSENSE_OPEN_METEO_API_KEY:-}
+  BIJAKSENSE_NEWS_RSS_URL: ${BIJAKSENSE_NEWS_RSS_URL:-}
+  BIJAKSENSE_REFRESH_HOURS: ${BIJAKSENSE_REFRESH_HOURS:-6}
+  BIJAKSENSE_SCHEDULE_ENABLED: ${BIJAKSENSE_SCHEDULE_ENABLED:-true}
+
 services:
   postgres:
     image: postgres:17
@@ -14,6 +32,7 @@ services:
   api:
     build: .
     environment:
+      <<: *provider-environment
       DATABASE_URL: postgresql+psycopg://kedaiflow:local-development-only@postgres/kedaiflow
       APP_ENV: development
       DATA_MODE: fixture
@@ -27,12 +46,24 @@ services:
   worker:
     build: .
     environment:
+      <<: *provider-environment
       DATABASE_URL: postgresql+psycopg://kedaiflow:local-development-only@postgres/kedaiflow
       APP_ENV: development
       ACTION_MODE: simulation
     command: ["python", "-m", "services.api.worker"]
     depends_on: [api]
     volumes: ["evidence:/app/private_media"]
+  bijaksense:
+    build: .
+    environment:
+      <<: *provider-environment
+      DATABASE_URL: postgresql+psycopg://kedaiflow:local-development-only@postgres/kedaiflow
+      APP_ENV: development
+      HF_HOME: /app/model_cache
+    command: ["sh", "-c", "python -m scripts.setup_bijaksense && python -m services.api.bijaksense.jobs"]
+    depends_on: [api]
+    volumes: ["model_cache:/app/model_cache"]
 volumes:
   database:
   evidence:
+  model_cache:

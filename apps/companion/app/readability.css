@@ -1,4 +1,5 @@
 /* Keep the warm palette while preserving readable body and status text. */
+.audio-review audio{width:100%;margin:8px 0 14px}.audio-review details form{padding:16px 0}.retry-consent{display:flex;align-items:flex-start;gap:9px;margin:12px 0 18px;font-size:12px;line-height:1.7}.retry-consent input{margin-top:4px}
 :root{--muted:#62745d}
 .workspace-label,.eyebrow,.page-heading p,.panel-heading p,.metric>div,.metric>small,.section-heading p,.feature-card p,.priority-row small,.sidebar-card p,.sidebar-bottom>button,.profile small,.business-switch small,.deal-list-row small,.workspace-footer,.workspace-footer>.text-button,.chart-caption,.chart-caption>span,.deal-card>p,.deal-dates>span,.deal-card>.muted,.case-card>p,.comparison-card>span,.comparison-card p,.decision-intro p,.scenario-conclusion p,.source-note,.field>span,.muted,.form-footer>span,.auth-form>p,.auth-story>p,.demo-entry small,.action-row small,.evidence-row small,.review-summary>p,.timeline p,.connector-list article p{color:#64775d}
 .hero p,.hero-label,.hero-link,.art-caption,.speech-tag{color:#546d45}
